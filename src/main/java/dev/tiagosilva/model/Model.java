@@ -1,190 +1,219 @@
 package dev.tiagosilva.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.io.*;
-import java.lang.reflect.Field;
-import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.*;
+import java.util.stream.Collectors;
+import java.lang.reflect.*;
 
-public abstract class Model<T extends Model<T>> {
-    protected long id;
+@Getter
+@Setter
+class Model<T extends Model<T>> {
+    protected String csvFileName;
+    protected Long id;
     protected LocalDateTime createdAt;
     protected LocalDateTime updatedAt;
-    protected String csvFileName;
-    protected List<String> excludeFields = new ArrayList<>();
-
-    public Model(String csvFileName, List<String> excludeFields) {
-        this.csvFileName = csvFileName;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-
-        this.excludeFields.add("csvFileName");
-        this.excludeFields.add("excludeFields");
-        this.excludeFields.addAll(excludeFields);
-    }
+    protected List<String> excludedFields = new ArrayList<>();
 
     public Model(String csvFileName) {
         this.csvFileName = csvFileName;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-
-        this.excludeFields.add("csvFileName");
-        this.excludeFields.add("excludeFields");
+        excludedFields.add("csvFileName");
+        excludedFields.add("excludedFields");
     }
 
-    public long getId() { return id; }
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public LocalDateTime getUpdatedAt() { return createdAt; }
+    public Model(String csvFileName, List<String> excludedFields) {
+        this.csvFileName = csvFileName;
 
-
-    public String toCsv() {
-        this.id = new Random().nextLong(1, Long.MAX_VALUE);
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-
-        Class<T> clazz = (Class<T>) this.getClass();
-        Field[] fp = clazz.getSuperclass().getDeclaredFields();
-        Field[] f = clazz.getDeclaredFields();
-        List<String> values = new ArrayList<>();
-
-        for(Field field: fp) {
-            try {
-                if (!excludeFields.contains(field.getName())) {
-                    field.setAccessible(true);
-                    Object value = field.get(this);
-                    values.add(value.toString());
-                }
-            } catch (IllegalAccessException e) {}
-        }
-
-        for(Field field: f) {
-            try {
-                if (!excludeFields.contains(field.getName())) {
-                    field.setAccessible(true);
-                    Object value = field.get(this);
-                    values.add(value.toString());
-                }
-            } catch (IllegalAccessException e) {}
-        }
-
-        return String.join(",", values);
+        this.excludedFields.add("csvFileName");
+        this.excludedFields.add("excludedFields");
+        this.excludedFields.addAll(excludedFields);
     }
 
-    public <T extends Model<T>> String csvHeader() {
-        Class<T> clazz = (Class<T>) this.getClass();
-        Field[] fp = clazz.getSuperclass().getDeclaredFields();
-        Field[] f = clazz.getDeclaredFields();
-        List<String> headers = new ArrayList<>();
-
-        for(Field field: fp) {
-            if (!excludeFields.contains(field.getName())) {
-                headers.add(field.getName());
-            }
-        }
-
-        for(Field field: f) {
-            if (!excludeFields.contains(field.getName())) {
-                headers.add(field.getName());
-            }
-        }
-
-        return String.join(",", headers);
-    }
-
-    public void save() {
-        boolean fileExists = Files.exists(Paths.get(csvFileName));
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(csvFileName, true))) {
-            if (!fileExists) {
-                writer.write(csvHeader());
-                writer.newLine();
-            }
-            writer.write(toCsv());
-            writer.newLine();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    public T fromCsv(String csvLine) {
-        return null;
-    }
-
-    // Listar todos
-    public List<T> list() {
+    public String toCSV() {
         try {
-            return Files.lines(Paths.get(csvFileName))
-                    .skip(1)
-                    .map(this::fromCsv)
-                    .collect(Collectors.toList());
-        } catch (IOException e) {
-            return new ArrayList<>();
+            Field[] superFields = this.getClass().getSuperclass().getDeclaredFields();
+            Field[] fields = this.getClass().getDeclaredFields();
+            List<String> values = new ArrayList<>();
+
+            for(Field f : superFields) {
+                if(!excludedFields.contains(f.getName())) {
+                    f.setAccessible(true);
+                    Object v = f.get(this);
+                    values.add(v == null ? "" : v.toString());
+                }
+            }
+            for (Field f : fields) {
+                if(!excludedFields.contains(f.getName())){
+                    f.setAccessible(true);
+                    Object v = f.get(this);
+                    values.add(v == null ? "" : v.toString());
+                }
+            }
+
+            return String.join(",", values);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao serializar para CSV", e);
         }
     }
 
-    public List<T> list(String field, String value, boolean exact) {
-        List<T> all = list();
-        return all.stream().filter(obj -> {
-            String fieldValue = getFieldValue(obj, field);
-            if (fieldValue == null) return false;
-            return exact ? fieldValue.equals(value) : fieldValue.contains(value);
-        }).collect(Collectors.toList());
-    }
-
-    public T find(long id) {
-        return list().stream().filter(obj -> obj.getId() == id).findFirst().orElse(null);
-    }
-
-    public T find(String field, String value) {
-        return list(field, value, true).stream().findFirst().orElse(null);
-    }
-    public boolean update(long id, T object) {
-        List<T> all = list();
-        boolean updated = false;
-        for (int i = 0; i < all.size(); i++) {
-            if (all.get(i).getId() == id) {
-                all.set(i, object);
-                updated = true;
-                break;
+    public <T extends Model<T>> String csvHeader(Class<T> clazz) {
+        Field[] superFields = clazz.getSuperclass().getDeclaredFields();
+        Field[] fields = clazz.getDeclaredFields();
+        List<String> names = new ArrayList<>();
+        for (Field f : superFields) {
+            if(!excludedFields.contains(f.getName())){
+                names.add(f.getName());
             }
         }
-        if (updated) {
-            writeAll(all);
-        }
-        return updated;
-    }
-
-    public boolean delete(long id) {
-        List<T> all = list();
-        boolean removed = all.removeIf(obj -> obj.getId() == id);
-        if (removed) {
-            writeAll(all);
-        }
-        return removed;
-    }
-
-    private void writeAll(List<T> all) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(csvFileName))) {
-            writer.write(csvHeader());
-            writer.newLine();
-            for (T obj : all) {
-                writer.write(obj.toCsv());
-                writer.newLine();
+        for (Field f : fields) {
+            if(!excludedFields.contains(f.getName())) {
+                names.add(f.getName());
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+        return String.join(",", names);
     }
 
-    private String getFieldValue(T obj, String field) {
+    public T fromCSV(String csvLine) {
         try {
-            var f = obj.getClass().getDeclaredField(field);
+            String[] parts = csvLine.split(",");
+            Class<?> clazz = this.getClass();
+            List<Field> allFields = new ArrayList<>();
+            for (Field f : clazz.getSuperclass().getDeclaredFields()) {
+                if (!excludedFields.contains(f.getName())) {
+                    allFields.add(f);
+                }
+            }
+            allFields.addAll(Arrays.asList(clazz.getDeclaredFields()));
+
+            T instance = (T) clazz.getDeclaredConstructor().newInstance();
+            for (int i = 0; i < allFields.size() && i < parts.length; i++) {
+                Field field = allFields.get(i);
+                field.setAccessible(true);
+                Class<?> type = field.getType();
+                String value = parts[i];
+                if (type == Long.class || type == long.class) {
+                    field.set(instance, value.isEmpty() ? null : Long.parseLong(value));
+                } else if (type == Integer.class || type == int.class) {
+                    field.set(instance, value.isEmpty() ? null : Integer.parseInt(value));
+                } else if (type == LocalDateTime.class) {
+                    field.set(instance, value.isEmpty() ? null : LocalDateTime.parse(value));
+                } else if (type == Float.class || type == float.class) {
+                    field.set(instance, value.isEmpty() ? null : Float.parseFloat(value));
+                } else {
+                    field.set(instance, value);
+                }
+            }
+            return instance;
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao desserializar do CSV: " + e.getMessage());
+        }
+    }
+
+    public String getFieldValue(String field) {
+        try {
+            Field f = this.getClass().getDeclaredField(field);
             f.setAccessible(true);
-            Object value = f.get(obj);
-            return value != null ? value.toString() : null;
+            Object v = f.get(this);
+            return v == null ? null : v.toString();
         } catch (Exception e) {
             return null;
         }
+    }
+
+    public void save() throws IOException {
+        this.createdAt = LocalDateTime.now();
+        Random random = new Random();
+
+        File file = new File(csvFileName);
+        boolean writeHeader = !file.exists() || file.length() == 0;
+        try (FileWriter fw = new FileWriter(csvFileName, true); BufferedWriter bw = new BufferedWriter(fw)) {
+            if (writeHeader) {
+                bw.write(csvHeader(this.getClass()));
+                bw.newLine();
+            }
+            List<T> all = list();
+            if(!all.isEmpty()) {
+                this.id = countRows() + 1;
+            } else {
+                this.id = 1L;
+            }
+            bw.write(this.toCSV());
+            bw.newLine();
+        }
+    }
+
+    public void update(Long id, T obj) throws IOException {
+        obj.updatedAt = LocalDateTime.now();
+
+        List<T> all = list();
+        try (FileWriter fw = new FileWriter(csvFileName, false); BufferedWriter bw = new BufferedWriter(fw)) {
+            for (T m : all) {
+                if (m.getId().equals(id)) {
+                    bw.write(obj.toCSV());
+                } else {
+                    bw.write(m.toCSV());
+                }
+                bw.newLine();
+            }
+        }
+    }
+
+    public void delete(Long id) throws IOException {
+        List<T> all = list();
+        try (FileWriter fw = new FileWriter(csvFileName, false); BufferedWriter bw = new BufferedWriter(fw)) {
+            for (T m : all) {
+                if (!m.getId().equals(id)) {
+                    bw.write(m.toCSV());
+                    bw.newLine();
+                }
+            }
+        }
+    }
+
+    public Long countRows() throws IOException {
+        try (FileReader fr = new FileReader(csvFileName); BufferedReader br = new BufferedReader(fr)) {
+            return br.lines().count() - 1;
+        } catch (FileNotFoundException e) {
+            return 0L;
+        }
+    }
+
+    public List<T> list() throws IOException {
+        List<T> result = new ArrayList<>();
+        try (FileReader fr = new FileReader(csvFileName); BufferedReader br = new BufferedReader(fr)) {
+            String line;
+            boolean first = true;
+            while ((line = br.readLine()) != null) {
+                if (first) { first = false; continue; } // pula header
+                result.add(fromCSV(line));
+            }
+        }
+        return result;
+    }
+
+    public List<T> list(String field, String filter, boolean exact) throws IOException {
+        return list().stream().filter(m -> {
+            String value = m.getFieldValue(field);
+            if (value == null) return false;
+            if (exact) {
+                return value.equals(filter);
+            } else {
+                return value.contains(filter);
+            }
+        }).collect(Collectors.toList());
+    }
+
+    public T find(Long id) throws IOException {
+        return list().stream().filter(m -> m.id.equals(id)).findFirst().orElse(null);
+    }
+
+    public T find(String field, String value) throws IOException {
+        return list().stream().filter(m -> {
+            String v = m.getFieldValue(field);
+            return v != null && v.equals(value);
+        }).findFirst().orElse(null);
     }
 }
