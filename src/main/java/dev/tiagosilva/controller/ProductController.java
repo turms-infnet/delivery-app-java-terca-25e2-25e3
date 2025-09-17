@@ -1,32 +1,36 @@
 package dev.tiagosilva.controller;
 
+import dev.tiagosilva.business.ProductBusinessHandler;
+import dev.tiagosilva.dto.ProductRequestDTO;
 import dev.tiagosilva.dto.ProductResponseDTO;
 
 import java.util.List;
 
-public class ProductController extends Controller<ProductResponseDTO>{
-    @Override
+public class ProductController{
+    public ProductBusinessHandler productBusinessHandler = new ProductBusinessHandler();
+
+
     public List<ProductResponseDTO> get() {
-        return List.of();
+        return productBusinessHandler.get();
     }
 
-    @Override
     public ProductResponseDTO get(Long id) {
-        return null;
+        return productBusinessHandler.get(id);
     }
 
-    @Override
-    public ProductResponseDTO create(ProductResponseDTO obj) {
-        return null;
+    public boolean create(ProductRequestDTO obj) {
+        return productBusinessHandler.create(obj);
     }
 
-    @Override
     public ProductResponseDTO update(Long id, ProductResponseDTO obj) {
         return null;
     }
 
-    @Override
     public boolean delete(Long id) {
         return false;
+    }
+
+    public List<ProductResponseDTO> addToCard(List<ProductRequestDTO> objs) {
+        return null;
     }
 }

@@ -8,50 +8,40 @@ import lombok.Setter;
 
 import java.io.IOException;
 
-@Setter
-@Getter
-public class UserResponseDTO{
+public class UserResponseDTO {
     private Long id;
     private String username;
-    private String password;
     private int role;
-    AddressResponseDTO address;
-    PaymentResponseDTO payment;
+
+    public UserResponseDTO() {}
 
     public UserResponseDTO(Long id, String username, String password, int role) throws IOException {
         this.id = id;
         this.username = username;
-        this.password = password;
         this.role = role;
-        this.getAddressLinked();
-        this.getPaymentLinked();
     }
 
-    public UserResponseDTO() {}
-
-    private void getAddressLinked() throws IOException {
-        AddressModel add = new AddressModel();
-        add = (AddressModel) add.find(this.id);
-
-        AddressResponseDTO addDTO = new AddressResponseDTO();
-        addDTO.setId(add.getId());
-        addDTO.setStreet(add.getStreet());
-        addDTO.setNumber(add.getNumber());
-        addDTO.setComp(add.getComp());
-        addDTO.setNeighborhood(add.getNeighborhood());
-        this.address = addDTO;
+    public Long getId() {
+        return id;
     }
 
-    private void getPaymentLinked() throws IOException {
-         PaymentModel pay = new PaymentModel();
-        pay = (PaymentModel) pay.find(this.id);
+    public void setId(Long id) {
+        this.id = id;
+    }
 
-         PaymentResponseDTO payDTO = new PaymentResponseDTO();
-         payDTO.setId(pay.getId());
-         payDTO.setName(pay.getName());
-         payDTO.setNumber(pay.getNumber());
-         payDTO.setMonth(pay.getMonth());
-         payDTO.setYear(pay.getYear());
-         this.payment = payDTO;
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public int getRole() {
+        return role;
+    }
+
+    public void setRole(int role) {
+        this.role = role;
     }
 }

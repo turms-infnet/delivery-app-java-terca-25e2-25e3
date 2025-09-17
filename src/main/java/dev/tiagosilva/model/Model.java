@@ -9,9 +9,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.lang.reflect.*;
 
-@Getter
-@Setter
-class Model<T extends Model<T>> {
+public class Model<T extends Model<T>> {
     protected String csvFileName;
     protected Long id;
     protected LocalDateTime createdAt;
@@ -151,11 +149,11 @@ class Model<T extends Model<T>> {
         List<T> all = list();
         try (FileWriter fw = new FileWriter(csvFileName, false); BufferedWriter bw = new BufferedWriter(fw)) {
             for (T m : all) {
-                if (m.getId().equals(id)) {
-                    bw.write(obj.toCSV());
-                } else {
-                    bw.write(m.toCSV());
-                }
+//                if (m.getId().equals(id)) {
+//                    bw.write(obj.toCSV());
+//                } else {
+//                    bw.write(m.toCSV());
+//                }
                 bw.newLine();
             }
         }
@@ -165,10 +163,10 @@ class Model<T extends Model<T>> {
         List<T> all = list();
         try (FileWriter fw = new FileWriter(csvFileName, false); BufferedWriter bw = new BufferedWriter(fw)) {
             for (T m : all) {
-                if (!m.getId().equals(id)) {
-                    bw.write(m.toCSV());
-                    bw.newLine();
-                }
+//                if (!m.getId().equals(id)) {
+//                    bw.write(m.toCSV());
+//                    bw.newLine();
+//                }
             }
         }
     }
@@ -183,13 +181,17 @@ class Model<T extends Model<T>> {
 
     public List<T> list() throws IOException {
         List<T> result = new ArrayList<>();
-        try (FileReader fr = new FileReader(csvFileName); BufferedReader br = new BufferedReader(fr)) {
-            String line;
-            boolean first = true;
-            while ((line = br.readLine()) != null) {
-                if (first) { first = false; continue; } // pula header
-                result.add(fromCSV(line));
+        try {
+            try (FileReader fr = new FileReader(csvFileName); BufferedReader br = new BufferedReader(fr)) {
+                String line;
+                boolean first = true;
+                while ((line = br.readLine()) != null) {
+                    if (first) { first = false; continue; } // pula header
+                    result.add(fromCSV(line));
+                }
             }
+        } catch (FileNotFoundException e) {
+            return result;
         }
         return result;
     }
@@ -215,5 +217,29 @@ class Model<T extends Model<T>> {
             String v = m.getFieldValue(field);
             return v != null && v.equals(value);
         }).findFirst().orElse(null);
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

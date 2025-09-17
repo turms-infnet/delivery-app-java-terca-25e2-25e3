@@ -1,4 +1,4 @@
 package dev.tiagosilva.business;
 
-public class ReportBusinessHandler extends BusinessHandler {
+public class ReportBusinessHandler {
 }

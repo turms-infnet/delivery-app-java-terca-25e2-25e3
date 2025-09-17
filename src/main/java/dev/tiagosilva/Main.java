@@ -19,41 +19,31 @@ public class Main {
         var app = Javalin.create(config -> {
                     config.router.mount(router -> {})
                         .apiBuilder(() -> {
-
-                            path("user", () -> {
+                            path("auth", () -> {
                                 UserController ctrl = new UserController() {};
-                                path("", () -> {
-                                    get(ctx -> {
-                                        List<UserResponseDTO> userDTOList = ctrl.get();
-                                        ctx.status(200);
-                                        ctx.json(userDTOList);
-                                    });
+                                path("login", () -> {
                                     post(ctx -> {
-                                        UserResponseDTO userDTO = ctrl.create(ctx.bodyAsClass(UserResponseDTO.class));
-                                        userDTO.setId(3L);
-                                        ctx.json(userDTO);
+                                        try {
+                                            UserResponseDTO userDTO = ctrl.login(ctx.bodyAsClass(UserRequestDTO.class));
+                                            ctx.status(200);
+                                            ctx.json(userDTO);
+                                        } catch (Exception e) {
+                                            logger.error("Error during login", e);
+                                            ctx.status(401);
+                                            ctx.json("Invalid username or password");
+                                        }
                                     });
                                 });
-                                path("{id}", () -> {
-                                    get(ctx -> {
-                                        UserResponseDTO userDTO = ctrl.get(Long.valueOf(ctx.pathParam("id")));
-                                        ctx.status(200);
-                                        ctx.json(userDTO);
-                                    });
-                                    put(ctx -> {
-                                        UserResponseDTO userDTO = ctrl.update(Long.valueOf(ctx.pathParam("id")), ctx.bodyAsClass(UserResponseDTO.class));
-                                        ctx.status(200);
-                                        ctx.json(userDTO);
-                                    });
-                                    delete(ctx -> {
-                                        boolean result = ctrl.delete(Long.valueOf(ctx.pathParam("id")));
+                                path("register", () -> {
+                                    post(ctx -> {
+                                        boolean result = ctrl.register(ctx.bodyAsClass(UserRequestDTO.class));
                                         if (result) {
-                                            ctx.status(200);
-                                            ctx.json("Ok");
+                                            ctx.status(201);
+                                            ctx.json("User created successfully");
                                         }
                                         else {
                                             ctx.status(400);
-                                            ctx.json("Error");
+                                            ctx.json("Error creating user");
                                         }
                                     });
                                 });
@@ -104,8 +94,15 @@ public class Main {
                                         ctx.json(productDTOList);
                                     });
                                     post(ctx -> {
-                                        ProductResponseDTO productDTO = ctrl.create(ctx.bodyAsClass(ProductResponseDTO.class));
-                                        ctx.json(productDTO);
+                                        boolean result = ctrl.create(ctx.bodyAsClass(ProductRequestDTO.class));
+                                        if (result) {
+                                            ctx.status(201);
+                                            ctx.json("Product created successfully");
+                                        }
+                                        else {
+                                            ctx.status(400);
+                                            ctx.json("Product already exists");
+                                        }
                                     });
                                 });
                                 path("{id}", () -> {
