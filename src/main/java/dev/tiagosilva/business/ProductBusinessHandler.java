@@ -15,7 +15,7 @@ public class ProductBusinessHandler {
         try {
             product = new ProductModel();
             ProductModel result = product.find("name", productDto.getName());
-            if (result != null) {
+            if (result.getName() != null) {
                 return false;
             }else {
                 product.setName(productDto.getName());
@@ -68,5 +68,34 @@ public class ProductBusinessHandler {
             throw new RuntimeException("Erro ao buscar usuário", e);
         }
         return productResponseDTO;
+    }
+
+    public boolean update(Long id, ProductRequestDTO productDto) {
+        try {
+            product = new ProductModel();
+            ProductModel result = product.find(id);
+            if (result.getName() == null) {
+                return false;
+            }else {
+                product.setName(productDto.getName());
+                product.setPrice(productDto.getPrice());
+                product.setId(result.getId());
+                product.setCreatedAt(result.getCreatedAt());
+                product.update(id);
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao buscar usuário", e);
+        }
+        return true;
+    }
+
+    public boolean delete(Long id) {
+        try {
+            product = new ProductModel();
+            product.delete(id);
+        } catch (Exception e) {
+            throw new RuntimeException("Erro ao buscar usuário", e);
+        }
+        return true;
     }
 }

@@ -143,30 +143,56 @@ public class Model<T extends Model<T>> {
         }
     }
 
-    public void update(Long id, T obj) throws IOException {
-        obj.updatedAt = LocalDateTime.now();
+    public void update(Long id) throws IOException {
+        this.updatedAt = LocalDateTime.now();
+
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFileName))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+        }
+
+        if (lines.isEmpty()) return;
 
         List<T> all = list();
-        try (FileWriter fw = new FileWriter(csvFileName, false); BufferedWriter bw = new BufferedWriter(fw)) {
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(csvFileName, false))) {
+            bw.write(lines.get(0));
+            bw.newLine();
             for (T m : all) {
-//                if (m.getId().equals(id)) {
-//                    bw.write(obj.toCSV());
-//                } else {
-//                    bw.write(m.toCSV());
-//                }
+                if (m.getId().equals(id)) {
+                    bw.write(this.toCSV());
+                } else {
+                    bw.write(m.toCSV());
+                }
                 bw.newLine();
             }
         }
     }
 
     public void delete(Long id) throws IOException {
+        List<String> lines = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(csvFileName))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                lines.add(line);
+            }
+        }
+
+        if (lines.isEmpty()) return;
+
         List<T> all = list();
-        try (FileWriter fw = new FileWriter(csvFileName, false); BufferedWriter bw = new BufferedWriter(fw)) {
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(csvFileName, false))) {
+            bw.write(lines.get(0));
+            bw.newLine();
             for (T m : all) {
-//                if (!m.getId().equals(id)) {
-//                    bw.write(m.toCSV());
-//                    bw.newLine();
-//                }
+                if (!m.getId().equals(id)) {
+                    bw.write(m.toCSV());
+                    bw.newLine();
+                }
             }
         }
     }

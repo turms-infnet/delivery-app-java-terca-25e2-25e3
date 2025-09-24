@@ -7,11 +7,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.IOException;
+import java.util.List;
 
 public class UserResponseDTO {
     private Long id;
     private String username;
     private int role;
+    private List<AddressResponseDTO> addresses;
 
     public UserResponseDTO() {}
 
@@ -43,5 +45,13 @@ public class UserResponseDTO {
 
     public void setRole(int role) {
         this.role = role;
+    }
+
+    public List<AddressResponseDTO> getAddresses() {
+        return addresses;
+    }
+
+    public void setAddresses(List<AddressResponseDTO> addresses) {
+        this.addresses = addresses;
     }
 }

@@ -1,27 +1,31 @@
 package dev.tiagosilva.controller;
 
+import dev.tiagosilva.business.AddressBusinessHandler;
+import dev.tiagosilva.dto.AddressRequestDTO;
 import dev.tiagosilva.dto.AddressResponseDTO;
 
 import java.util.List;
 
 public class AddressController{
+    public AddressBusinessHandler addressBusinessHandler = new AddressBusinessHandler();
+
+    public boolean create(AddressRequestDTO addressDto) {
+        return addressBusinessHandler.create(addressDto);
+    }
+
     public List<AddressResponseDTO> get() {
-        return List.of();
+        return addressBusinessHandler.get();
     }
 
     public AddressResponseDTO get(Long id) {
-        return null;
+        return addressBusinessHandler.get(id);
     }
 
-    public AddressResponseDTO create(AddressResponseDTO obj) {
-        return null;
-    }
-
-    public AddressResponseDTO update(Long id, AddressResponseDTO obj) {
-        return null;
+    public boolean update(Long id, AddressRequestDTO addressDto) {
+        return addressBusinessHandler.update(id, addressDto);
     }
 
     public boolean delete(Long id) {
-        return false;
+        return addressBusinessHandler.delete(id);
     }
 }

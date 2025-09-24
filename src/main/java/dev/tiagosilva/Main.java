@@ -57,7 +57,7 @@ public class Main {
                                         ctx.json(addressDTOList);
                                     });
                                     post(ctx -> {
-                                        AddressResponseDTO addressDTO = ctrl.create(ctx.bodyAsClass(AddressResponseDTO.class));
+                                        boolean addressDTO = ctrl.create(ctx.bodyAsClass(AddressRequestDTO.class));
                                         ctx.json(addressDTO);
                                     });
                                 });
@@ -68,7 +68,7 @@ public class Main {
                                         ctx.json(addressDTO);
                                     });
                                     put(ctx -> {
-                                        AddressResponseDTO addressDTO = ctrl.update(Long.valueOf(ctx.pathParam("id")), ctx.bodyAsClass(AddressResponseDTO.class));
+                                        boolean addressDTO = ctrl.update(Long.valueOf(ctx.pathParam("id")), ctx.bodyAsClass(AddressRequestDTO.class));
                                         ctx.status(200);
                                         ctx.json(addressDTO);
                                     });
@@ -112,7 +112,7 @@ public class Main {
                                         ctx.json(productDTO);
                                     });
                                     put(ctx -> {
-                                        ProductResponseDTO productDTO = ctrl.update(Long.valueOf(ctx.pathParam("id")), ctx.bodyAsClass(ProductResponseDTO.class));
+                                        boolean productDTO = ctrl.update(Long.valueOf(ctx.pathParam("id")), ctx.bodyAsClass(ProductRequestDTO.class));
                                         ctx.status(200);
                                         ctx.json(productDTO);
                                     });

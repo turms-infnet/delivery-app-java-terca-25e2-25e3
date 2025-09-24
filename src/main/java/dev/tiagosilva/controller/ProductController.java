@@ -22,12 +22,12 @@ public class ProductController{
         return productBusinessHandler.create(obj);
     }
 
-    public ProductResponseDTO update(Long id, ProductResponseDTO obj) {
-        return null;
+    public boolean update(Long id, ProductRequestDTO obj) {
+        return productBusinessHandler.update(id, obj);
     }
 
     public boolean delete(Long id) {
-        return false;
+        return productBusinessHandler.delete(id);
     }
 
     public List<ProductResponseDTO> addToCard(List<ProductRequestDTO> objs) {
